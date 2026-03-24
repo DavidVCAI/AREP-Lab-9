@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure App - AREP Lab 9</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .secure-badge { background: #27ae60; color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; }
+        .insecure-badge { background: #e74c3c; color: white; padding: 4px 10px; border-radius: 12px; font-size: 12px; }
+        input { padding: 10px; border: 1px solid #ddd; border-radius: 4px; width: 200px; margin-right: 10px; }
+        button { padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #2980b9; }
+        #result { margin-top: 20px; padding: 15px; background: #ecf0f1; border-radius: 4px; font-family: monospace; display: none; }
+        .login-section { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 4px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .field { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Secure Web App <span class="secure-badge">HTTPS</span></h1>
+        <p>AREP Lab 9 - Async HTML+JS Client served over TLS via Apache</p>
+
+        <h2>Public Endpoint (no auth)</h2>
+        <div>
+            <input type="text" id="nameInput" placeholder="Enter a name" value="World">
+            <button onclick="callHello()">Call /hello</button>
+        </div>
+
+        <h2>Protected Endpoint (requires login)</h2>
+        <div class="login-section">
+            <div class="field">
+                <label>Username:</label>
+                <input type="text" id="username" value="admin">
+            </div>
+            <div class="field">
+                <label>Password:</label>
+                <input type="password" id="password" value="">
+            </div>
+            <button onclick="callSecureGreeting()">Call /api/greeting (auth)</button>
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const BACKEND_URL = "https://arep-lab-9-2-dv.duckdns.org:5000";
+
+        async function callHello() {
+            const name = document.getElementById("nameInput").value;
+            const resultDiv = document.getElementById("result");
+            resultDiv.style.display = "block";
+            resultDiv.textContent = "Loading...";
+            try {
+                const response = await fetch(BACKEND_URL + "/hello?name=" + encodeURIComponent(name));
+                const text = await response.text();
+                resultDiv.textContent = "Response: " + text;
+            } catch (err) {
+                resultDiv.textContent = "Error: " + err.message;
+            }
+        }
+
+        async function callSecureGreeting() {
+            const name = document.getElementById("nameInput").value;
+            const user = document.getElementById("username").value;
+            const pass = document.getElementById("password").value;
+            const resultDiv = document.getElementById("result");
+            resultDiv.style.display = "block";
+            resultDiv.textContent = "Loading...";
+            try {
+                const response = await fetch(BACKEND_URL + "/api/greeting?name=" + encodeURIComponent(name), {
+                    headers: {
+                        "Authorization": "Basic " + btoa(user + ":" + pass)
+                    }
+                });
+                const text = await response.text();
+                resultDiv.textContent = "Response: " + text;
+            } catch (err) {
+                resultDiv.textContent = "Error: " + err.message;
+            }
+        }
+    </script>
+</body>
+</html>
